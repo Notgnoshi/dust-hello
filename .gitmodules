@@ -1,0 +1,3 @@
+[submodule "submodules/field-computer-external-api-idl"]
+	path = submodules/field-computer-external-api-idl
+	url = git@gitlab.cnh.com:atd/idl/field-computer-external-api-idl.git
