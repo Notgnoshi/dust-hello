@@ -1,3 +1,7 @@
+Cargo.lock
+target/
+build*/
+
 # Prerequisites
 *.d
 
@@ -39,3 +43,8 @@
 
 # debug information files
 *.dwo
+
+
+# Added by cargo
+
+/target
