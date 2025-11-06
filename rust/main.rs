@@ -1,4 +1,4 @@
-mod participant_listener;
+mod listener;
 
 use clap::Parser;
 use dust_dds::domain::domain_participant::DomainParticipant;
@@ -9,7 +9,7 @@ use dust_dds::infrastructure::status::{NO_STATUS, StatusKind};
 use dust_dds::infrastructure::type_support::DdsType;
 use dust_dds::listener::NO_LISTENER;
 use dust_dds::std_runtime::StdRuntime;
-use participant_listener::ParticipantListener;
+use listener::{ParticipantListener, SubscriberListener};
 
 #[derive(Clone, Debug, Default, DdsType)]
 #[dust_dds(extensibility = "final")]
@@ -111,7 +111,11 @@ fn main() -> eyre::Result<()> {
 
     let participant = get_participant(&partition);
     let subscriber = participant
-        .create_subscriber(qos::QosKind::Default, NO_LISTENER, NO_STATUS)
+        .create_subscriber(
+            qos::QosKind::Default,
+            Some(SubscriberListener),
+            ALL_STATUSES,
+        )
         .unwrap();
     let publisher = participant
         .create_publisher(qos::QosKind::Default, NO_LISTENER, NO_STATUS)
