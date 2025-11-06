@@ -9,7 +9,7 @@ use dust_dds::infrastructure::status::{NO_STATUS, StatusKind};
 use dust_dds::infrastructure::type_support::DdsType;
 use dust_dds::listener::NO_LISTENER;
 use dust_dds::std_runtime::StdRuntime;
-use listener::{ParticipantListener, PublisherListener, SubscriberListener};
+use listener::{ParticipantListener, PublisherListener, SubscriberListener, TopicListener};
 
 #[derive(Clone, Debug, Default, DdsType)]
 #[dust_dds(extensibility = "final")]
@@ -126,8 +126,8 @@ fn main() -> eyre::Result<()> {
             "connection::Hello",
             "connection::Hello",
             qos::QosKind::Default,
-            NO_LISTENER,
-            NO_STATUS,
+            Some(TopicListener),
+            ALL_STATUSES,
         )
         .unwrap();
 

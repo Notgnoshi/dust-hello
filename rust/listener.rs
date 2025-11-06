@@ -4,6 +4,7 @@ use dust_dds::infrastructure::status;
 use dust_dds::publication::publisher_listener::PublisherListener as IPublisherListener;
 use dust_dds::runtime::DdsRuntime;
 use dust_dds::subscription::subscriber_listener::SubscriberListener as ISubscriberListener;
+use dust_dds::topic_definition::topic_listener::TopicListener as ITopicListener;
 
 pub struct ParticipantListener;
 impl<R: DdsRuntime> DomainParticipantListener<R> for ParticipantListener {
@@ -262,5 +263,16 @@ impl<R: DdsRuntime> IPublisherListener<R> for PublisherListener {
             "Publication matched. topic: {}",
             writer.get_topic().get_name()
         );
+    }
+}
+
+pub struct TopicListener;
+impl<R: DdsRuntime> ITopicListener<R> for TopicListener {
+    async fn on_inconsistent_topic(
+        &mut self,
+        topic: dds::topic::TopicAsync<R>,
+        status: status::InconsistentTopicStatus,
+    ) {
+        tracing::warn!("Inconsistent topic: {}: {status:?}", topic.get_name());
     }
 }
