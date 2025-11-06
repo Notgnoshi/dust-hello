@@ -1,3 +1,4 @@
+#include "hurrier/hmw/qos/reliability.h"
 #include <cnhos-log/logger.hpp>
 
 #include <field_computer_external_api_idl/connection/Hello.hpp>
@@ -7,7 +8,6 @@
 #include <hurrier/subscriber_listener.hpp>
 
 const static char* const OWN_NAME = "hello-cpp";
-const static cnhos::log::LoggerInitializer G_LOGGER(OWN_NAME);
 CNHOS_LOG_CATEGORY(s_hello, OWN_NAME);
 
 void on_sub(const std::string& uid, bool matched)
@@ -35,6 +35,7 @@ void on_hello(const connection::Hello& hello)
 
 int main()
 {
+    const cnhos::log::LoggerInitializer logger(OWN_NAME);
     hurrier::log::Logger::init();
     cnhos::log::logger_set_level(cnhos::log::Log_level::debug);
 
@@ -51,6 +52,9 @@ int main()
     auto qos = qos_t::default_shared_qos();
     qos->transport_enable_shm(false);
     qos->transport_enable_udp(true);
+    qos->durability_set_kind(kDurabilityKindTransientLocal);
+    qos->reliability_set_kind(kReliabilityKindReliable);
+    qos->history_set_depth(1);
     // qos->set_partition("");
 
     auto participant = hurrier::Participant("hello-cpp", qos);
@@ -58,12 +62,11 @@ int main()
         std::make_unique<hurrier::SubscriberListener<connection::Hello>>(on_hello, on_sub);
     auto pub_listener = std::make_unique<hurrier::PublisherListener>(on_pub);
 
-    // TODO: Set history depth in QoS
     // TODO: Set liveliness in QoS
     auto publisher =
-        participant.publisher<connection::Hello>("connection::Hello", nullptr, pub_listener.get());
+        participant.publisher<connection::Hello>("connection::Hello", qos, pub_listener.get());
     auto subscriber =
-        participant.subscriber<connection::Hello>("connection::Hello", sub_listener.get());
+        participant.subscriber<connection::Hello>("connection::Hello", sub_listener.get(), qos);
 
     publisher->publish(own_hello);
 

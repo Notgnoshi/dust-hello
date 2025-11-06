@@ -9,3 +9,10 @@ name = "hello"
 path = "rust/main.rs"
 
 [dependencies]
+clap = { version = "~4.3", features = ["derive"] }
+color-eyre = "0.6.5"
+# There's some required bugfixes that haven't been released yet
+dust_dds = { git = "https://github.com/s2e-systems/dust-dds.git" }
+eyre = "0.6.12"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
