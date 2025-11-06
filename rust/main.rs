@@ -188,15 +188,15 @@ fn main() -> eyre::Result<()> {
     };
     tracing::info!("Self: {own_hello:?}");
 
-    writer.write(&own_hello, None).unwrap();
+    writer.write(own_hello, None).unwrap();
 
     loop {
         std::thread::sleep(std::time::Duration::from_millis(100));
         let Ok(sample) = reader.read_next_sample() else {
             continue;
         };
-        let hello = sample.data().unwrap();
-        if hello.participant_name == own_hello.participant_name {
+        let hello = sample.data.unwrap();
+        if hello.participant_name == args.name {
             tracing::debug!("Received own hello, ignoring ...");
         } else {
             tracing::info!("Received: {hello:?}");
