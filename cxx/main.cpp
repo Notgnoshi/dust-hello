@@ -66,7 +66,7 @@ int main()
     auto publisher =
         participant.publisher<connection::Hello>("connection::Hello", qos, pub_listener.get());
     auto subscriber =
-        participant.subscriber<connection::Hello>("connection::Hello", sub_listener.get());
+        participant.subscriber<connection::Hello>("connection::Hello", sub_listener.get(), qos);
 
     publisher->publish(own_hello);
 
