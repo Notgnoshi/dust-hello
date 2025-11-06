@@ -9,7 +9,9 @@ use dust_dds::infrastructure::status::{NO_STATUS, StatusKind};
 use dust_dds::infrastructure::type_support::DdsType;
 use dust_dds::listener::NO_LISTENER;
 use dust_dds::std_runtime::StdRuntime;
-use listener::{ParticipantListener, PublisherListener, SubscriberListener, TopicListener};
+use listener::{
+    DataReaderListener, ParticipantListener, PublisherListener, SubscriberListener, TopicListener,
+};
 
 #[derive(Clone, Debug, Default, DdsType)]
 #[dust_dds(extensibility = "final")]
@@ -151,8 +153,8 @@ fn main() -> eyre::Result<()> {
                 representation: representation.clone(),
                 ..Default::default()
             }),
-            NO_LISTENER,
-            NO_STATUS,
+            Some(DataReaderListener),
+            ALL_STATUSES,
         )
         .unwrap();
     let writer = publisher

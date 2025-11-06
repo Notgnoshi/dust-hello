@@ -3,6 +3,7 @@ use dust_dds::domain::domain_participant_listener::DomainParticipantListener;
 use dust_dds::infrastructure::status;
 use dust_dds::publication::publisher_listener::PublisherListener as IPublisherListener;
 use dust_dds::runtime::DdsRuntime;
+use dust_dds::subscription::data_reader_listener::DataReaderListener as IDataReaderListener;
 use dust_dds::subscription::subscriber_listener::SubscriberListener as ISubscriberListener;
 use dust_dds::topic_definition::topic_listener::TopicListener as ITopicListener;
 
@@ -274,5 +275,82 @@ impl<R: DdsRuntime> ITopicListener<R> for TopicListener {
         status: status::InconsistentTopicStatus,
     ) {
         tracing::warn!("Inconsistent topic: {}: {status:?}", topic.get_name());
+    }
+}
+
+pub struct DataReaderListener;
+impl<R: DdsRuntime, DataT: Send> IDataReaderListener<R, DataT> for DataReaderListener {
+    async fn on_data_available(&mut self, reader: dds::data_reader::DataReaderAsync<R, DataT>) {
+        tracing::info!(
+            "Data available. topic: {}",
+            reader.get_topicdescription().get_name()
+        );
+    }
+
+    async fn on_sample_rejected(
+        &mut self,
+        reader: dds::data_reader::DataReaderAsync<R, DataT>,
+        status: status::SampleRejectedStatus,
+    ) {
+        tracing::warn!(
+            "Sample rejected. topic: {} reason: {:?}",
+            reader.get_topicdescription().get_name(),
+            status.last_reason
+        );
+    }
+
+    async fn on_liveliness_changed(
+        &mut self,
+        reader: dds::data_reader::DataReaderAsync<R, DataT>,
+        _status: status::LivelinessChangedStatus,
+    ) {
+        tracing::warn!(
+            "Liveliness changed. topic: {}",
+            reader.get_topicdescription().get_name()
+        );
+    }
+
+    async fn on_requested_deadline_missed(
+        &mut self,
+        reader: dds::data_reader::DataReaderAsync<R, DataT>,
+        _status: status::RequestedDeadlineMissedStatus,
+    ) {
+        tracing::warn!(
+            "Requested deadline missed. topic: {}",
+            reader.get_topicdescription().get_name()
+        );
+    }
+
+    async fn on_requested_incompatible_qos(
+        &mut self,
+        reader: dds::data_reader::DataReaderAsync<R, DataT>,
+        _status: status::RequestedIncompatibleQosStatus,
+    ) {
+        tracing::warn!(
+            "Requested incompatible QoS. topic: {}",
+            reader.get_topicdescription().get_name()
+        );
+    }
+
+    async fn on_subscription_matched(
+        &mut self,
+        reader: dds::data_reader::DataReaderAsync<R, DataT>,
+        _status: status::SubscriptionMatchedStatus,
+    ) {
+        tracing::info!(
+            "Subscription matched. topic: {}",
+            reader.get_topicdescription().get_name()
+        );
+    }
+
+    async fn on_sample_lost(
+        &mut self,
+        reader: dds::data_reader::DataReaderAsync<R, DataT>,
+        _status: status::SampleLostStatus,
+    ) {
+        tracing::warn!(
+            "Sample lost. topic: {}",
+            reader.get_topicdescription().get_name()
+        );
     }
 }
