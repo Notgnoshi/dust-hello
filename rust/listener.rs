@@ -1,6 +1,7 @@
 use dust_dds::dds_async as dds;
 use dust_dds::domain::domain_participant_listener::DomainParticipantListener;
 use dust_dds::infrastructure::status;
+use dust_dds::publication::publisher_listener::PublisherListener as IPublisherListener;
 use dust_dds::runtime::DdsRuntime;
 use dust_dds::subscription::subscriber_listener::SubscriberListener as ISubscriberListener;
 
@@ -213,6 +214,53 @@ impl<R: DdsRuntime> ISubscriberListener<R> for SubscriberListener {
         tracing::warn!(
             "Sample lost. topic: {}",
             reader.get_topicdescription().get_name()
+        );
+    }
+}
+
+pub struct PublisherListener;
+impl<R: DdsRuntime> IPublisherListener<R> for PublisherListener {
+    async fn on_liveliness_lost(
+        &mut self,
+        writer: dds::data_writer::DataWriterAsync<R, ()>,
+        status: status::LivelinessLostStatus,
+    ) {
+        tracing::warn!(
+            "Liveliness lost: {}: {status:?}",
+            writer.get_topic().get_name()
+        );
+    }
+
+    async fn on_offered_deadline_missed(
+        &mut self,
+        writer: dds::data_writer::DataWriterAsync<R, ()>,
+        _status: status::OfferedDeadlineMissedStatus,
+    ) {
+        tracing::warn!(
+            "Offered deadline missed. topic: {}",
+            writer.get_topic().get_name()
+        );
+    }
+
+    async fn on_offered_incompatible_qos(
+        &mut self,
+        writer: dds::data_writer::DataWriterAsync<R, ()>,
+        _status: status::OfferedIncompatibleQosStatus,
+    ) {
+        tracing::warn!(
+            "Offered incompatible QoS. topic: {}",
+            writer.get_topic().get_name()
+        );
+    }
+
+    async fn on_publication_matched(
+        &mut self,
+        writer: dds::data_writer::DataWriterAsync<R, ()>,
+        _status: status::PublicationMatchedStatus,
+    ) {
+        tracing::info!(
+            "Publication matched. topic: {}",
+            writer.get_topic().get_name()
         );
     }
 }

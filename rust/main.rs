@@ -9,7 +9,7 @@ use dust_dds::infrastructure::status::{NO_STATUS, StatusKind};
 use dust_dds::infrastructure::type_support::DdsType;
 use dust_dds::listener::NO_LISTENER;
 use dust_dds::std_runtime::StdRuntime;
-use listener::{ParticipantListener, SubscriberListener};
+use listener::{ParticipantListener, PublisherListener, SubscriberListener};
 
 #[derive(Clone, Debug, Default, DdsType)]
 #[dust_dds(extensibility = "final")]
@@ -118,7 +118,7 @@ fn main() -> eyre::Result<()> {
         )
         .unwrap();
     let publisher = participant
-        .create_publisher(qos::QosKind::Default, NO_LISTENER, NO_STATUS)
+        .create_publisher(qos::QosKind::Default, Some(PublisherListener), ALL_STATUSES)
         .unwrap();
 
     let topic = participant
