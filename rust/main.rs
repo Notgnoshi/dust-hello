@@ -5,12 +5,12 @@ use dust_dds::domain::domain_participant::DomainParticipant;
 use dust_dds::domain::domain_participant_factory::DomainParticipantFactory;
 use dust_dds::infrastructure::qos;
 use dust_dds::infrastructure::qos_policy::{self as policy, XCDR2_DATA_REPRESENTATION};
-use dust_dds::infrastructure::status::{NO_STATUS, StatusKind};
+use dust_dds::infrastructure::status::StatusKind;
 use dust_dds::infrastructure::type_support::DdsType;
-use dust_dds::listener::NO_LISTENER;
 use dust_dds::std_runtime::StdRuntime;
 use listener::{
-    DataReaderListener, ParticipantListener, PublisherListener, SubscriberListener, TopicListener,
+    DataReaderListener, DataWriterListener, ParticipantListener, PublisherListener,
+    SubscriberListener, TopicListener,
 };
 
 #[derive(Clone, Debug, Default, DdsType)]
@@ -174,8 +174,8 @@ fn main() -> eyre::Result<()> {
                 representation,
                 ..Default::default()
             }),
-            NO_LISTENER,
-            NO_STATUS,
+            Some(DataWriterListener),
+            ALL_STATUSES,
         )
         .unwrap();
 
