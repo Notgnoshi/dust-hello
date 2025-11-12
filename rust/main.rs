@@ -6,12 +6,16 @@ use dust_dds::domain::domain_participant_factory::DomainParticipantFactory;
 use dust_dds::infrastructure::qos;
 use dust_dds::infrastructure::qos_policy::{self as policy, XCDR2_DATA_REPRESENTATION};
 use dust_dds::infrastructure::status::StatusKind;
+use dust_dds::infrastructure::time::Duration;
 use dust_dds::infrastructure::type_support::DdsType;
 use dust_dds::std_runtime::StdRuntime;
+use dust_dds::wait_set::{Condition, WaitSet};
 use listener::{
     DataReaderListener, DataWriterListener, ParticipantListener, PublisherListener,
     SubscriberListener, TopicListener,
 };
+
+// const NANOS_PER_MS: u32 = 1_000_000;
 
 #[derive(Clone, Debug, Default, DdsType)]
 #[dust_dds(extensibility = "final")]
@@ -157,6 +161,12 @@ fn main() -> eyre::Result<()> {
             ALL_STATUSES,
         )
         .unwrap();
+
+    let hello_ready = reader.get_statuscondition();
+    hello_ready
+        .set_enabled_statuses(&[StatusKind::DataAvailable])
+        .unwrap();
+
     let writer = publisher
         .create_datawriter::<Hello>(
             &topic,
@@ -190,8 +200,17 @@ fn main() -> eyre::Result<()> {
 
     writer.write(own_hello, None).unwrap();
 
+    let mut waiter = WaitSet::new();
+    waiter
+        .attach_condition(Condition::StatusCondition(hello_ready))
+        .unwrap();
+
     loop {
-        std::thread::sleep(std::time::Duration::from_millis(100));
+        let Ok(_conds) = waiter.wait(Duration::new(100, 0)) else {
+            tracing::debug!("timeout");
+            continue; // timeout, loop again
+        };
+        tracing::debug!("WaitSet DataAvailable triggered");
         let Ok(sample) = reader.read_next_sample() else {
             continue;
         };
