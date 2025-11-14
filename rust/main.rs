@@ -11,8 +11,7 @@ use dust_dds::infrastructure::type_support::DdsType;
 use dust_dds::std_runtime::StdRuntime;
 use dust_dds::wait_set::{Condition, WaitSet};
 use listener::{
-    DataReaderListener, DataWriterListener, ParticipantListener, PublisherListener,
-    SubscriberListener, TopicListener,
+    DataReaderListener, DataWriterListener, ParticipantListener, PublisherListener, TopicListener,
 };
 
 // const NANOS_PER_MS: u32 = 1_000_000;
@@ -119,8 +118,10 @@ fn main() -> eyre::Result<()> {
     let subscriber = participant
         .create_subscriber(
             qos::QosKind::Default,
-            Some(SubscriberListener),
-            ALL_STATUSES,
+            // If you configure a subscriber listener, then on_data_available on the reader
+            // listener won't be called.
+            dust_dds::listener::NO_LISTENER,
+            dust_dds::infrastructure::status::NO_STATUS,
         )
         .unwrap();
     let publisher = participant
