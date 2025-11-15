@@ -1,5 +1,8 @@
 mod listener;
 
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use clap::Parser;
 use dust_dds::domain::domain_participant::DomainParticipant;
 use dust_dds::domain::domain_participant_factory::DomainParticipantFactory;
@@ -206,9 +209,16 @@ fn main() -> eyre::Result<()> {
         .attach_condition(Condition::StatusCondition(hello_ready))
         .unwrap();
 
-    loop {
-        let Ok(_conds) = waiter.wait(Duration::new(100, 0)) else {
-            tracing::debug!("timeout");
+    let is_running = Arc::new(AtomicBool::new(true));
+    let is_running2 = is_running.clone();
+    ctrlc::set_handler(move || {
+        tracing::info!("Caught shutdown signal");
+        is_running2.store(false, Ordering::SeqCst);
+    })
+    .expect("Error setting Ctrl-C handler");
+
+    while is_running.load(Ordering::SeqCst) {
+        let Ok(_conds) = waiter.wait(Duration::new(1, 0)) else {
             continue; // timeout, loop again
         };
         tracing::debug!("WaitSet DataAvailable triggered");
@@ -222,4 +232,11 @@ fn main() -> eyre::Result<()> {
             tracing::info!("Received: {hello:?}");
         }
     }
+
+    // Try triggering an unmatch event
+    publisher.delete_datawriter(&writer)?;
+    subscriber.delete_datareader(&reader)?;
+    participant.delete_contained_entities()?;
+
+    Ok(())
 }
