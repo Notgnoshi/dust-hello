@@ -14,7 +14,8 @@ use dust_dds::infrastructure::type_support::DdsType;
 use dust_dds::std_runtime::StdRuntime;
 use dust_dds::wait_set::{Condition, WaitSet};
 use listener::{
-    DataReaderListener, DataWriterListener, ParticipantListener, PublisherListener, TopicListener,
+    DataReaderListener, DataWriterListener, ParticipantListener, PublisherListener,
+    SubscriberListener, TopicListener,
 };
 
 // const NANOS_PER_MS: u32 = 1_000_000;
@@ -121,10 +122,24 @@ fn main() -> eyre::Result<()> {
     let subscriber = participant
         .create_subscriber(
             qos::QosKind::Default,
-            // If you configure a subscriber listener, then on_data_available on the reader
-            // listener won't be called.
-            dust_dds::listener::NO_LISTENER,
-            dust_dds::infrastructure::status::NO_STATUS,
+            Some(SubscriberListener),
+            // If the subscriber handles DataOnReaders, then the DataReader listener won't handle
+            // the DataAvailable status (specified by the DDS standard in 2.2.4.3.2)
+            &[
+                StatusKind::InconsistentTopic,
+                StatusKind::OfferedDeadlineMissed,
+                StatusKind::RequestedDeadlineMissed,
+                StatusKind::OfferedIncompatibleQos,
+                StatusKind::RequestedIncompatibleQos,
+                StatusKind::SampleLost,
+                StatusKind::SampleRejected,
+                // StatusKind::DataOnReaders,
+                StatusKind::DataAvailable,
+                StatusKind::LivelinessLost,
+                StatusKind::LivelinessChanged,
+                StatusKind::PublicationMatched,
+                StatusKind::SubscriptionMatched,
+            ],
         )
         .unwrap();
     let publisher = participant
